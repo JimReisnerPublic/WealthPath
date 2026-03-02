@@ -182,6 +182,7 @@ function FrequencyToggle({
 export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDirty }: PlanFormProps) {
   const [form, setForm] = useState<FormState>(DEFAULT_STATE)
   const [submittedOnce, setSubmittedOnce] = useState(false)
+  const [scenarioLoaded, setScenarioLoaded] = useState(false)
 
   function markDirty(dirty: boolean) {
     onDirty(dirty)
@@ -301,7 +302,7 @@ export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDi
               key={s.label}
               type="button"
               title={s.description}
-              onClick={() => { setForm(scenarioToFormState(s)); onReset(); markDirty(false); setSubmittedOnce(false) }}
+              onClick={() => { setForm(scenarioToFormState(s)); onReset(); markDirty(false); setSubmittedOnce(false); setScenarioLoaded(true) }}
               className="px-3 py-1 rounded-full border border-border text-xs font-medium bg-background text-foreground hover:bg-muted hover:border-primary transition-colors"
             >
               {s.label}
@@ -310,8 +311,8 @@ export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDi
         </div>
       </div>
 
-      {/* Top shortcut button — appears after first submission so users can re-run quickly */}
-      {submittedOnce && (
+      {/* Top shortcut button — appears after first submission or scenario load */}
+      {(submittedOnce || scenarioLoaded) && (
         <Button type="submit" className="w-full mb-4" size="lg">
           Estimate My Plan
         </Button>
