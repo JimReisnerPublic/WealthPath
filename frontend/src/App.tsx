@@ -91,6 +91,11 @@ export default function App() {
                 WealthPath is an educational planning tool. Consult a financial advisor for
                 personalized guidance.
               </p>
+              <p className="mt-2">
+                <strong className="text-foreground">No data is stored.</strong>{' '}
+                Your numbers are used only to compute your result and are never saved, logged,
+                or transmitted beyond the calculation.
+              </p>
             </div>
           </div>
         </div>
