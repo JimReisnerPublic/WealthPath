@@ -2,8 +2,8 @@ name: Keep API Warm
 
 on:
   schedule:
-    # Every 15 minutes, Mon–Fri, 8am–7pm ET (13:00–00:00 UTC, accounting for EST)
-    - cron: '0,15,30,45 13-23 * * 1-5'
+    # Every 5 minutes, Mon–Fri, 8am–7pm ET (13:00–00:00 UTC, accounting for EST)
+    - cron: '*/5 13-23 * * 1-5'
   workflow_dispatch:
 
 jobs:
