@@ -53,6 +53,47 @@ export default function App() {
           </div>
 
         </div>
+
+        {/* About section */}
+        <div className="mt-12 border-t border-border pt-8">
+          <h2 className="text-base font-semibold text-foreground mb-4">About WealthPath</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-muted-foreground">
+            <div>
+              <h3 className="font-medium text-foreground mb-1">What this does</h3>
+              <p>
+                WealthPath estimates the probability that your current savings, income, and retirement
+                plan will cover your spending through your expected lifetime. Enter your numbers, and
+                the model scores your plan and shows which factors drive your result — so you can see
+                exactly what to improve.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium text-foreground mb-1">Data sources</h3>
+              <p>
+                Projections are benchmarked against the{' '}
+                <strong className="text-foreground">Federal Reserve Survey of Consumer Finances (SCF)</strong>
+                {' '}— a nationally representative survey of U.S. household balance sheets conducted
+                every three years. The most recent wave (2022) covers ~4,600 households and is the
+                gold standard for wealth and income comparisons.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium text-foreground mb-1">How it works</h3>
+              <p>
+                A gradient-boosted machine learning model (XGBoost) was trained on hundreds of
+                thousands of Monte Carlo retirement simulations anchored to real SCF household
+                profiles. Each simulation models savings accumulation, market volatility, spending
+                in retirement, and Social Security income. The model returns a success probability
+                and SHAP-based explanations showing which inputs matter most for your household.
+              </p>
+              <p className="mt-2">
+                <strong className="text-foreground">Not financial advice.</strong>{' '}
+                WealthPath is an educational planning tool. Consult a financial advisor for
+                personalized guidance.
+              </p>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   )
