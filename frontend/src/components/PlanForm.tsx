@@ -17,7 +17,7 @@ interface PlanFormProps {
   onDirty: (dirty: boolean) => void
 }
 
-const API_BASE = 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 function parseDollars(value: string): number {
   const cleaned = value.replace(/[^0-9.-]/g, '')
