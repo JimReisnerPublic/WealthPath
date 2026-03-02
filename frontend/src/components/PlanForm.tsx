@@ -310,6 +310,13 @@ export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDi
         </div>
       </div>
 
+      {/* Top shortcut button — appears after first submission so users can re-run quickly */}
+      {submittedOnce && (
+        <Button type="submit" className="w-full mb-4" size="lg">
+          Estimate My Plan
+        </Button>
+      )}
+
       {/* 1. About You */}
       <SectionCard title="About You">
         <FieldRow label="Age">
@@ -319,7 +326,7 @@ export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDi
             max={100}
             value={form.age}
             onChange={e => set('age', e.target.value)}
-            placeholder="45"
+            placeholder="e.g. 45"
             required
           />
         </FieldRow>
@@ -341,14 +348,14 @@ export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDi
           <DollarInput
             value={form.income}
             onChange={v => set('income', v)}
-            placeholder="85,000"
+            placeholder="e.g. 85,000"
           />
         </FieldRow>
         <FieldRow label="Current Net Worth" hint="Assets minus liabilities">
           <DollarInput
             value={form.net_worth}
             onChange={v => set('net_worth', v)}
-            placeholder="150,000"
+            placeholder="e.g. 150,000"
             allowNegative
           />
         </FieldRow>
@@ -356,7 +363,7 @@ export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDi
           <DollarInput
             value={form.investable_savings}
             onChange={v => set('investable_savings', v)}
-            placeholder="75,000"
+            placeholder="e.g. 75,000"
           />
         </FieldRow>
         <FieldRow label="Home Equity">
@@ -384,7 +391,7 @@ export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDi
             max={80}
             value={form.planned_retirement_age}
             onChange={e => set('planned_retirement_age', e.target.value)}
-            placeholder="65"
+            placeholder="e.g. 65"
             required
           />
         </FieldRow>
@@ -402,7 +409,7 @@ export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDi
           <DollarInput
             value={form.annual_spending_retirement}
             onChange={v => set('annual_spending_retirement', v)}
-            placeholder="60,000"
+            placeholder="e.g. 60,000"
           />
         </FieldRow>
       </SectionCard>
