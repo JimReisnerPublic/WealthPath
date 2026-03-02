@@ -1,0 +1,41 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+.env
+.venv/
+venv/
+env/
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+*.log
+.DS_Store
+Thumbs.db
+
+# Large data and model files — generated locally, not committed
+# Leading / anchors to repo root so src/wealthpath/data/ and frontend/src/data/ are unaffected
+# data/* (not data/) required so !exceptions below are honoured by git
+/data/*
+!/data/.gitkeep
+!/data/scf_sample.csv
+
+# MLflow local experiment tracking (SQLite + artifact store)
+mlruns/
+mlflow.db
+
+# Local session files — planning and conversation history, not for public repo
+WealthPathConversation.txt
+Implementation_Plan.md
+
+# Personal learning notes and infrastructure docs — not for public repo
+docs/learning/

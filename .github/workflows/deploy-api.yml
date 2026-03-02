@@ -1,0 +1,48 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
+      - 'pyproject.toml'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:   # allow manual trigger from GitHub UI
+
+env:
+  ACR_NAME: crwealthpath
+  IMAGE_NAME: wealthpath-api
+  CONTAINER_APP: ca-wealthpath-api
+  RESOURCE_GROUP: rg-wealthpath
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # az acr build runs the Docker build in Azure — no local Docker daemon needed.
+      # Tags both :latest and :<sha> so we can roll back to a specific commit if needed.
+      - name: Build and push image to ACR
+        run: |
+          az acr build \
+            --registry ${{ env.ACR_NAME }} \
+            --image ${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --image ${{ env.IMAGE_NAME }}:latest \
+            .
+
+      # Point the Container App at the immutable :<sha> tag, not :latest,
+      # so Azure knows a new revision is needed (same :latest tag = no redeploy).
+      - name: Deploy new image to Container Apps
+        run: |
+          az containerapp update \
+            --name ${{ env.CONTAINER_APP }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}

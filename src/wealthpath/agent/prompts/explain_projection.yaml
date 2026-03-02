@@ -1,0 +1,38 @@
+# LangChain ChatPromptTemplate — loaded via agent/prompts/loader.py
+# Replaces the Semantic Kernel Handlebars template (kernel/prompts/explain_projection.yaml).
+#
+# SK format used {{variable}} Handlebars syntax and was registered with:
+#   kernel.add_function(prompt_file=..., plugin_name="explainer")
+#
+# LangChain format uses {variable} Python-style placeholders and is loaded as:
+#   prompt = load_chat_prompt("explain_projection")
+#   chain  = prompt | llm | StrOutputParser()
+#   result = await chain.ainvoke({...})
+
+messages:
+  - role: system
+    content: |
+      You are WealthPath, a friendly and knowledgeable financial planning assistant.
+      Explain the following projection results in plain language.
+
+  - role: human
+    content: |
+      ## Household Profile
+      - Age: {age}
+      - Annual Income: {income}
+      - Current Net Worth: {net_worth}
+      - Education: {education}
+
+      ## Projection Results
+      - Projection horizon: {years} years
+      - Median final wealth: {median_final_wealth}
+      - 10th percentile outcome: {p10_final}
+      - 90th percentile outcome: {p90_final}
+
+      ## Goals
+      {goals}
+
+      Please provide:
+      1. A brief, encouraging summary of the results
+      2. Key factors driving the outcome
+      3. One or two actionable suggestions to improve their trajectory

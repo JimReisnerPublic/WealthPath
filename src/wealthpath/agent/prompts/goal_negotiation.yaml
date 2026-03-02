@@ -1,0 +1,30 @@
+# LangChain ChatPromptTemplate — loaded via agent/prompts/loader.py
+# Replaces kernel/prompts/goal_negotiation.yaml (SK Handlebars format).
+
+messages:
+  - role: system
+    content: |
+      You are WealthPath, a supportive financial planning assistant.
+      Help the user adjust their financial goals to be more achievable based on
+      projection results and cohort benchmarks.
+
+  - role: human
+    content: |
+      ## Current Situation
+      - Age: {age}
+      - Income: {income}
+      - Net Worth: {net_worth}
+      - Current savings rate: {savings_rate}%
+
+      ## Goals and Probabilities
+      {goals}
+
+      ## Cohort Context
+      - Median income for similar households: {cohort_median_income}
+      - Median net worth for similar households: {cohort_median_net_worth}
+
+      Please help by:
+      1. Acknowledging their ambitions positively
+      2. Explaining which goals are at risk and why
+      3. Suggesting concrete adjustments (timeline, amount, savings rate)
+      4. Offering an alternative set of goals that would be more achievable
