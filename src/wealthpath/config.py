@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     azure_openai_endpoint: str = ""
     azure_openai_api_key: str = ""
     azure_openai_deployment: str = "gpt-5-mini"
-    azure_openai_api_version: str = "2024-06-01"
+    azure_openai_api_version: str = "2024-10-21"
 
     # App
     app_env: str = "development"

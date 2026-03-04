@@ -15,6 +15,8 @@ interface PlanFormProps {
   onError: (error: string | null) => void
   onReset: () => void
   onDirty: (dirty: boolean) => void
+  onHousehold?: (household: import('@/types/api').HouseholdProfile) => void
+  onEvalRequest?: (req: EvaluationRequest) => void
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
@@ -179,7 +181,7 @@ function FrequencyToggle({
   )
 }
 
-export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDirty }: PlanFormProps) {
+export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDirty, onHousehold, onEvalRequest }: PlanFormProps) {
   const [form, setForm] = useState<FormState>(DEFAULT_STATE)
   const [submittedOnce, setSubmittedOnce] = useState(false)
   const [scenarioLoaded, setScenarioLoaded] = useState(false)
@@ -276,6 +278,8 @@ export function PlanForm({ onResult, onCohort, onLoading, onError, onReset, onDi
       }
       const data: EvaluationResponse = await evalSettled.value.json()
       onResult(data)
+      onHousehold?.(payload.household)
+      onEvalRequest?.(payload)
 
       // Cohort result — optional; silently ignored on failure
       if (cohortSettled.status === 'fulfilled' && cohortSettled.value.ok) {

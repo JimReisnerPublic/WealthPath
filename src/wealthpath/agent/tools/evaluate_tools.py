@@ -27,6 +27,9 @@ def build_evaluate_tools(
 
     @tool
     def evaluate_retirement_plan(
+        age: int,
+        annual_income: float,
+        current_savings: float,
         planned_retirement_age: int,
         annual_spending_retirement: float,
         savings_rate: float,
@@ -38,36 +41,36 @@ def build_evaluate_tools(
         Evaluate a retirement plan and return the probability of financial success.
 
         Use this tool when the user wants to know their chance of not running out of
-        money in retirement. This tool uses an XGBoost surrogate model trained on
-        Monte Carlo simulations for fast, explainable results.
+        money in retirement, or when modeling a scenario (e.g., retiring earlier/later,
+        changing spending or savings rate).
+
+        The user's household context (age, income, current_savings) is shown in the
+        system context header — always pass the user's actual values, not defaults.
 
         Args:
+            age: User's current age.
+            annual_income: Annual household income in USD.
+            current_savings: Current investable savings (liquid assets, excluding home equity) in USD.
             planned_retirement_age: Age at which the user plans to retire (45–80).
             annual_spending_retirement: Expected annual spending in retirement in USD.
             savings_rate: Fraction of current income being saved (0.0–0.80).
-            social_security_annual: Expected annual Social Security income in USD (default 0).
+            social_security_annual: Combined guaranteed income in USD — Social Security (time-weighted for delayed start) + pension + other. Pass the value shown in context as "Guaranteed income".
             equity_fraction: Fraction of portfolio in stocks, rest in bonds (0.0–1.0, default 0.70).
             life_expectancy: Assumed age at end of plan horizon (default 85).
         """
-        # We need the household profile from the agent's conversation context.
-        # The agent injects it via the question — the tool extracts it from the surrogate service.
-        # For now, the tool returns a descriptive result based on what it can compute.
-        # A full implementation would require the agent to pass household context explicitly.
-
         from wealthpath.models.evaluate import EvaluationRequest
         from wealthpath.models.household import HouseholdProfile, EducationLevel
 
-        # Create a minimal profile for the tool call
-        # The agent should have gathered age/income/net_worth from earlier tool calls or the question
-        placeholder_profile = HouseholdProfile(
-            age=45,
-            income=80_000,
-            net_worth=200_000,
+        profile = HouseholdProfile(
+            age=age,
+            income=annual_income,
+            net_worth=current_savings,
+            investable_savings=current_savings,
             education=EducationLevel.BACHELORS,
         )
 
         request = EvaluationRequest(
-            household=placeholder_profile,
+            household=profile,
             planned_retirement_age=planned_retirement_age,
             life_expectancy=life_expectancy,
             annual_spending_retirement=annual_spending_retirement,
@@ -78,7 +81,6 @@ def build_evaluate_tools(
 
         result = surrogate.predict(request)
         if result is None:
-            # Fallback not available here without full household context
             return (
                 "The surrogate model is not yet trained. "
                 "Run scripts/generate_training_data.py then scripts/train_surrogate_model.py."

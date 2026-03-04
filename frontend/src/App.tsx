@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { PlanForm } from '@/components/PlanForm'
 import { ResultsCard } from '@/components/ResultsCard'
 import { CohortCard } from '@/components/CohortCard'
-import type { EvaluationResponse, CohortResponse } from '@/types/api'
+import { ChatPanel } from '@/components/ChatPanel'
+import type { EvaluationResponse, CohortResponse, HouseholdProfile, EvaluationRequest } from '@/types/api'
 
 export default function App() {
   const [result, setResult] = useState<EvaluationResponse | null>(null)
   const [cohortResult, setCohortResult] = useState<CohortResponse | null>(null)
+  const [household, setHousehold] = useState<HouseholdProfile | null>(null)
+  const [evalRequest, setEvalRequest] = useState<EvaluationRequest | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formDirty, setFormDirty] = useState(false)
@@ -16,6 +19,8 @@ export default function App() {
   function handleReset() {
     setResult(null)
     setCohortResult(null)
+    setHousehold(null)
+    setEvalRequest(null)
     setError(null)
     setFormDirty(false)
   }
@@ -24,17 +29,25 @@ export default function App() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-baseline gap-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-baseline gap-3">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">WealthPath</h1>
           <span className="text-sm text-muted-foreground">Retirement Readiness Estimator</span>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/*
+          Three-column layout on xl+ (≥1280px): Results | Form | Chat
+          Two-column on lg (1024–1279px): Form | Results  (no chat sidebar)
+          Mobile (<1024px): Form → Results → Chat (stacked)
 
-          {/* Form — full width on mobile, flex-1 on desktop */}
-          <div className="w-full lg:flex-1 lg:min-w-0">
+          DOM order is Form→Results→Chat (best for mobile linear flow).
+          xl:order-* repositions columns on large screens without touching the DOM.
+        */}
+        <div className="flex flex-col lg:flex-row xl:flex-row gap-6 items-start">
+
+          {/* Form — first in DOM for mobile; center column on xl */}
+          <div className="w-full lg:flex-1 lg:min-w-0 xl:order-2 xl:max-w-[440px]">
             <PlanForm
               onResult={setResult}
               onCohort={setCohortResult}
@@ -42,17 +55,39 @@ export default function App() {
               onError={setError}
               onReset={handleReset}
               onDirty={setFormDirty}
+              onHousehold={setHousehold}
+              onEvalRequest={setEvalRequest}
             />
           </div>
 
-          {/* Results — below form on mobile (only shown after submit),
-                        sticky sidebar on desktop (always visible as placeholder) */}
-          <div className={`w-full lg:w-80 lg:shrink-0 lg:sticky lg:top-8 space-y-4 ${!hasResult ? 'hidden lg:block' : ''}`}>
+          {/* Results — second in DOM; right sidebar on lg, left sidebar on xl */}
+          <div className={`w-full lg:w-80 lg:shrink-0 lg:sticky lg:top-8 xl:w-60 xl:order-1 space-y-4 ${!hasResult ? 'hidden lg:block' : ''}`}>
             <ResultsCard result={result} loading={loading} error={error} stale={formDirty} />
             {cohortResult && !loading && <CohortCard result={cohortResult} />}
           </div>
 
+          {/* Chat sidebar — xl+ only; always visible so the placeholder holds space.
+               Below xl the chat renders outside the flex row (see block below). */}
+          <div className="hidden xl:flex xl:flex-col xl:flex-1 xl:min-w-0 xl:sticky xl:top-8 xl:h-[calc(100vh-4rem)] xl:order-3">
+            {result && household && evalRequest
+              ? <ChatPanel household={household} result={result} evalRequest={evalRequest} />
+              : (
+                <div className="flex-1 flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-8 text-center gap-2">
+                  <p className="text-sm font-medium text-muted-foreground">Ask About Your Results</p>
+                  <p className="text-xs text-muted-foreground">Submit your plan above<br />to start chatting.</p>
+                </div>
+              )
+            }
+          </div>
+
         </div>
+
+        {/* Chat panel — mobile and lg only (xl shows it in the sidebar above) */}
+        {result && household && evalRequest && (
+          <div className="mt-6 xl:hidden">
+            <ChatPanel household={household} result={result} evalRequest={evalRequest} />
+          </div>
+        )}
 
         {/* About section */}
         <div className="mt-12 border-t border-border pt-8">

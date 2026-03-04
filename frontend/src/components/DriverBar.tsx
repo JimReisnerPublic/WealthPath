@@ -12,28 +12,28 @@ export function DriverBar({ driver, maxAbs }: DriverBarProps) {
   const isPositive = driver.direction === 'positive'
 
   return (
-    <div className="flex items-center gap-3 py-1">
-      {/* Feature name */}
-      <span className="text-sm text-foreground w-44 shrink-0 truncate" title={driver.display_name}>
-        {driver.display_name}
-      </span>
+    <div className="py-1 space-y-1">
+      {/* Name + value on one row — name truncates, value pinned right */}
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-sm text-foreground truncate" title={driver.display_name}>
+          {driver.display_name}
+        </span>
+        <span
+          className={`text-sm font-semibold tabular-nums shrink-0 ${
+            isPositive ? 'text-emerald-600' : 'text-red-500'
+          }`}
+        >
+          {isPositive ? '+' : '−'}{pp}pp
+        </span>
+      </div>
 
-      {/* Bar */}
-      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+      {/* Bar spans full column width */}
+      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${isPositive ? 'bg-emerald-500' : 'bg-red-400'}`}
           style={{ width: barWidth }}
         />
       </div>
-
-      {/* Value */}
-      <span
-        className={`text-sm font-semibold tabular-nums w-14 text-right shrink-0 ${
-          isPositive ? 'text-emerald-600' : 'text-red-500'
-        }`}
-      >
-        {isPositive ? '+' : '−'}{pp}pp
-      </span>
     </div>
   )
 }

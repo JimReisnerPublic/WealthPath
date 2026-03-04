@@ -93,7 +93,7 @@ Treat documentation as a first-class deliverable alongside code.
 > re-reading the full conversation. When the user says "update CLAUDE.md with where we left
 > off", rewrite the block below with current state.
 
-### Status: Phase 5 (Azure Deployment) — almost done 🔄
+### Status: Phase 5 (Azure Deployment) — complete ✅ | Phase 6 (Polish) — in progress 🔄
 
 **What's done:**
 - FastAPI backend with `src/` layout, hatchling build, Pydantic v2 models
@@ -112,6 +112,7 @@ Treat documentation as a first-class deliverable alongside code.
 - **Azure OpenAI — complete ✅**
   - `gpt-5-mini` (Global Standard) deployed to existing `guituitive-aoai` resource in `rg-notefinder-app-prod`
   - Shared with Guituitive (Guituitive already live on gpt-5-mini in production)
+  - **API version:** `2024-10-21` — the Azure OpenAI REST API version (distinct from the model version `2025-08-07`)
 - **Blob Storage model loading — complete ✅**
   - `surrogate_model_service.py` has `load_from_blob()` method
   - `dependencies.py` auto-selects blob vs local based on `AZURE_STORAGE_CONNECTION_STRING` env var
@@ -130,7 +131,14 @@ Treat documentation as a first-class deliverable alongside code.
 - **Keys rotated ✅** — both Azure OpenAI key and storage account key were exposed in chat and should be rotated
 - **AZURE_OPENAI_ENDPOINT** fixed — was placeholder, now set to `https://eastus.api.cognitive.microsoft.com/`
 - **VITE_API_BASE_URL** set in SWA app settings — points to Container App FQDN
-- **SWA workflow conflict** — Azure auto-generated a workflow file committed directly to GitHub (not yet pulled locally); need to `git pull`, compare with `deploy-frontend.yml`, and delete whichever is redundant (likely `deploy-frontend.yml`)
+- **SWA workflow conflict resolved ✅** — pulled Azure's auto-generated workflow; removed redundant `deploy-frontend.yml`
+- **`AZURE_CREDENTIALS` GitHub secret added ✅** — `deploy-api.yml` CI/CD is fully functional
+- **`gpt-4o-mini` deployment retired ✅** — cleaned up from `guituitive-aoai` resource
+- **Streaming AI chat — complete ✅** (design decisions in section below)
+  - `POST /api/v1/chat/stream` — SSE streaming via LangGraph `astream_events()`
+  - `ChatPanel` component — multi-turn conversation, typewriter streaming, tool-call status display
+  - Local smoke tested end-to-end
+  - `ca-wealthpath-api` Container App env var `AZURE_OPENAI_API_VERSION=2024-10-21` applied
 
 **To run locally (no Azure required):**
 ```bash
@@ -142,15 +150,71 @@ cd frontend && npm run dev
 # → http://localhost:5173
 ```
 
-**What's next — finish deployment:**
-1. `git pull` — gets Azure's auto-generated SWA workflow from GitHub
-2. Compare Azure's workflow with `deploy-frontend.yml` — delete whichever is redundant (likely `deploy-frontend.yml`)
-3. **Smoke test** the live API: `curl https://<container-app-fqdn>/healthz`
-4. **Smoke test** the live frontend at the SWA URL
-5. **Add `AZURE_CREDENTIALS` GitHub secret** (service principal) so `deploy-api.yml` can run on push — see Step 4b in `docs/learning/azure-deployment.md`
-6. **Rotate keys** if not yet done — OpenAI key and storage key were both exposed in chat this session
-7. **Retire gpt-4o-mini** deployment: `az cognitiveservices account deployment delete --resource-group rg-notefinder-app-prod --name guituitive-aoai --deployment-name gpt-4o-mini`
-8. **Future refactor** (deferred): move Python source into `backend/` folder to match `frontend/` layout
+**What's next — Phase 6 Polish:**
+1. **Merge streaming branch to main and deploy**
+2. **README polish** — live demo link, architecture diagram, SK-vs-LC comparison table
+3. **Observability** — LangChain callback logging for production AI visibility
+4. **Future refactor** (deferred): move Python source into `backend/` folder to match `frontend/` layout
+
+---
+
+### Chat streaming — design decisions (agreed)
+
+**Goal:** Add a contextual multi-turn chat panel below the evaluation results.
+
+**API:**
+- Replace `/api/v1/chat/explain` and `/api/v1/chat/plan` with a single `POST /api/v1/chat/stream`
+- Response: `text/event-stream` (SSE) via FastAPI `StreamingResponse`
+- Three event types:
+  ```
+  data: {"type": "status", "text": "Looking up cohort data..."}   ← agent tool call in progress
+  data: {"type": "token",  "text": "Retiring at 65 "}             ← LLM output token
+  data: {"type": "done"}                                           ← sentinel
+  ```
+- Uses `agent.astream_events()` (LangGraph) to get both tool-call events and token-level streaming
+
+**Request model — breaking change from existing `ChatRequest`:**
+```python
+# New shape (replaces question: str)
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+class ChatRequest(BaseModel):
+    household: HouseholdProfile
+    messages: list[ChatMessage]   # full conversation history; last entry is the new question
+    context: dict | None          # optional evaluation result for grounding
+```
+
+**Multi-turn:** History accumulates client-side; full `messages` list is sent with every request. Server remains stateless. Cap at last ~10 messages if context window becomes a concern (not needed for demo).
+
+**Frontend:**
+- New `ChatPanel` component — appears below the main layout only after an evaluation result exists
+- Conversation display: user bubbles right-aligned, assistant bubbles left-aligned with typewriter streaming
+- Tool status events render as a transient italic line above the growing assistant bubble
+- SSE client: raw `fetch` + `ReadableStream` (no library — simpler to explain in interviews)
+- `App.tsx` passes `result` + `household` as props to `ChatPanel` for context grounding
+
+**Layout:**
+```
+┌─────────────────────────────────────────────────┐
+│ PlanForm  │  ResultsCard                         │
+│           │  CohortCard                          │
+├───────────┴─────────────────────────────────────┤
+│ ChatPanel (full width, shown after first result) │
+│  user:  "What if I retire at 65?"               │
+│  agent: [Analyzing cohort data...]              │
+│          "Retiring at 65 raises your score..."  │
+│  [Ask about your results...          ] [Send]   │
+└─────────────────────────────────────────────────┘
+```
+
+**Build order:**
+1. `models/chat.py` — new `ChatMessage` + updated `ChatRequest`
+2. `services/ai_engine.py` — new `stream_chat()` async generator method
+3. `api/routers/chat.py` — new `/stream` route; keep old routes as non-streaming fallbacks (don't delete yet)
+4. `frontend/src/components/ChatPanel.tsx` — new component
+5. `frontend/src/App.tsx` — wire in `ChatPanel`
 
 **Open design decisions:**
 
