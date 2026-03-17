@@ -80,7 +80,6 @@ Training R² = 0.98    Test MAE = 3.4 percentage points
 
 Top SHAP drivers: `net_replacement_rate`, `years_in_retirement`, `savings_as_income_multiple`
 
-See [docs/learning/ml-model.md](docs/learning/ml-model.md) for details.
 
 ## Project Structure
 
@@ -95,7 +94,6 @@ wealthpath/
 ├── scripts/            # Training data generation, model training, SCF loading
 ├── data/               # SCF parquet, training data, model artifact (gitignored)
 ├── docs/               # Project documentation
-└── docs/learning/      # Developer learning notes (ML, FastAPI, LangChain, etc.)
 ```
 
 ## Documentation
