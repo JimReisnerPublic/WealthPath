@@ -30,7 +30,7 @@ _TREASURY_SERIES = {
 }
 
 
-async def _latest_fred_value(series_id: str) -> str:
+async def _latest_fred_value(series_id: str, **extra_params: str) -> str:
     """Fetch the most recent observation for a FRED series."""
     api_key = os.environ.get("FRED_API_KEY", "")
     if not api_key:
@@ -42,6 +42,7 @@ async def _latest_fred_value(series_id: str) -> str:
         "limit": 1,
         "sort_order": "desc",
         "file_type": "json",
+        **extra_params,
     }
 
     async with httpx.AsyncClient() as client:
@@ -59,16 +60,17 @@ async def _latest_fred_value(series_id: str) -> str:
 @mcp.tool()
 async def get_current_inflation_rate() -> str:
     """
-    Get the current US inflation rate index (CPI for All Urban Consumers)
+    Get the current US year-over-year inflation rate (CPI for All Urban Consumers)
     from the Federal Reserve Economic Data (FRED) database.
 
-    Use this when the user asks about inflation, cost of living increases,
-    purchasing power, or when grounding retirement projections in current
-    economic conditions. The CPI value reflects actual current inflation,
-    not a historical assumption.
+    Returns the annual percent change in CPI — the number people mean when they
+    say "inflation is running at X%". Use this when the user asks about inflation,
+    cost of living increases, purchasing power, or when grounding retirement
+    projections in current economic conditions.
     """
-    result = await _latest_fred_value("CPIAUCSL")
-    return f"Current US CPI (Consumer Price Index, All Urban Consumers): {result}"
+    # units=pc1 tells FRED to return percent change from year ago, not the raw index
+    result = await _latest_fred_value("CPIAUCSL", units="pc1")
+    return f"Current US inflation rate (CPI year-over-year change): {result}%"
 
 
 @mcp.tool()

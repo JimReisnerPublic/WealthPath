@@ -53,6 +53,8 @@ async def build_fred_tools(fred_api_key: str) -> tuple[list, object | None]:
         )
         return [], None
 
+    # langchain-mcp-adapters 0.2+ removed the async context manager pattern.
+    # Instead: create client, then await get_tools() which spawns the subprocess.
     client = MultiServerMCPClient(
         {
             "fred": {
@@ -66,8 +68,7 @@ async def build_fred_tools(fred_api_key: str) -> tuple[list, object | None]:
         }
     )
 
-    await client.__aenter__()
-    tools = client.get_tools()
+    tools = await client.get_tools()
     logger.info(
         "FRED MCP server started — %d economic data tool(s) available.", len(tools)
     )

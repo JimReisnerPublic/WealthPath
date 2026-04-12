@@ -24,6 +24,10 @@ _TOOL_STATUS: dict[str, str] = {
     "get_cohort_median_net_worth": "Looking up cohort net worth data...",
     "evaluate_retirement_plan": "Running plan evaluation...",
     "get_median_projection": "Running retirement projection...",
+    # FRED MCP server tools
+    "get_current_inflation_rate": "Fetching current inflation data from FRED...",
+    "get_treasury_yield": "Fetching Treasury yield from FRED...",
+    "get_fed_funds_rate": "Fetching Federal Funds rate from FRED...",
 }
 
 

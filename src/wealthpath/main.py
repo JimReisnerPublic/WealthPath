@@ -60,9 +60,8 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    if fred_client is not None:
-        await fred_client.__aexit__(None, None, None)
-        logger.info("FRED MCP server stopped.")
+    # langchain-mcp-adapters 0.2+ manages subprocess lifecycle internally;
+    # no explicit shutdown needed (removed __aexit__ call).
 
 
 def create_app() -> FastAPI:
