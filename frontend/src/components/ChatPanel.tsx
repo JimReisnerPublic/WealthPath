@@ -142,7 +142,7 @@ export function ChatPanel({ household, result, evalRequest }: ChatPanelProps) {
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold">Ask About Your Results</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col flex-1 min-h-0 gap-3 pb-4">
+      <CardContent className="flex flex-col flex-1 min-h-0 gap-3 pb-12">
 
         {/* Message history — grows to fill available space; scrolls internally */}
         {(messages.length > 0 || isStreaming) && (
